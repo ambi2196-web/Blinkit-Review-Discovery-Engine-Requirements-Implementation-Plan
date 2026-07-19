@@ -43,6 +43,20 @@ REQUIRED_FIELDS = [
     "discovery_channel", "segment_signals", "verbatim_quote",
 ]
 
+# Models occasionally invent categories/barriers outside the fixed taxonomy
+# (e.g. "dairy" instead of "grocery_staples") despite explicit instructions.
+# Filter to the canonical sets so the barrier x category matrix stays clean.
+VALID_CATEGORIES = {
+    "grocery_staples", "fresh_produce", "snacks_beverages", "household_cleaning",
+    "personal_care", "beauty_cosmetics", "baby_care", "pet_supplies",
+    "pharma_wellness", "electronics_accessories", "home_kitchen", "festive_seasonal",
+}
+VALID_BARRIERS = {
+    "habit_autopilot", "trust_quality", "price_perception", "awareness",
+    "occasion_mismatch", "assortment_doubt", "ux_findability", "past_bad_experience",
+}
+VALID_CHANNELS = {"search", "browse", "reorder", "offer", "word_of_mouth", "none_stated"}
+
 # Groq free-tier list pricing is $0; kept configurable in case that changes.
 INPUT_PRICE_PER_1M = float(os.getenv("GROQ_INPUT_PRICE_PER_1M", "0"))
 OUTPUT_PRICE_PER_1M = float(os.getenv("GROQ_OUTPUT_PRICE_PER_1M", "0"))
@@ -88,6 +102,10 @@ def normalize_tag(tag: dict) -> dict:
         }
     for field in REQUIRED_FIELDS:
         tag.setdefault(field, None)
+    tag["categories_mentioned"] = [c for c in (tag["categories_mentioned"] or []) if c in VALID_CATEGORIES]
+    tag["barrier_type"] = [b for b in (tag["barrier_type"] or []) if b in VALID_BARRIERS]
+    if tag["discovery_channel"] not in VALID_CHANNELS:
+        tag["discovery_channel"] = "none_stated"
     return tag
 
 
