@@ -7,3 +7,4 @@ pandas
 python-dotenv
 langdetect
 tqdm
+tabulate
