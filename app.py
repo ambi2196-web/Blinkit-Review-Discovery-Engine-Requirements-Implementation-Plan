@@ -26,6 +26,7 @@ from pipeline.aggregate import (
 DB_PATH = Path(__file__).parent / "data" / "reviews.db"
 PROMPT_PATH = Path(__file__).parent / "prompts" / "tagging_prompt.md"
 VALIDATION_REPORT_PATH = Path(__file__).parent / "validation_report.md"
+SELF_CONSISTENCY_REPORT_PATH = Path(__file__).parent / "self_consistency_report.md"
 
 LIVE_DEMO_MODEL = os.getenv("GROQ_TAGGING_MODEL", "llama-3.3-70b-versatile")
 LIVE_DEMO_LIMIT = 10
@@ -229,6 +230,14 @@ x 12 product categories. See `prompts/tagging_prompt.md` for the full spec and f
 **Non-destructive cleaning:** dropped reviews (too-short, near-duplicate, or pure
 delivery/app rants with zero product signal) are never deleted from `reviews.db` -
 they're logged with a reason in `data/exports/dropped_reviews.csv` for audit.
+
+**Known limitation - batch-context bias:** a self-consistency check (re-tagging the
+same 50 reviews individually vs. in the original batch-of-25 context) found the
+batched context makes the tagger meaningfully more willing to assign
+`grocery_staples` and `past_bad_experience` specifically - the disagreement was
+one-directional (batched >> individual), not the symmetric noise you'd expect from
+sampling variation alone. Counts for those two labels in the matrix likely run
+somewhat high because of this. See the self-consistency expander below.
         """
     )
     with st.expander("Validation: AI tags vs. hand labels"):
@@ -236,3 +245,8 @@ they're logged with a reason in `data/exports/dropped_reviews.csv` for audit.
             st.markdown(VALIDATION_REPORT_PATH.read_text(encoding="utf-8"))
         else:
             st.info("Validation not yet run (Phase 5). See `pipeline/validation.py`.")
+    with st.expander("AI self-consistency check (not a substitute for the above)"):
+        if SELF_CONSISTENCY_REPORT_PATH.exists():
+            st.markdown(SELF_CONSISTENCY_REPORT_PATH.read_text(encoding="utf-8"))
+        else:
+            st.info("Not yet run. See `pipeline/validation.py --self-consistency`.")
