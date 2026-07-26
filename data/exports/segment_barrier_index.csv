@@ -1,2 +1,4 @@
 ,segment,barrier,segment_n,count,segment_rate,baseline_rate,lift
-0,late_night,price_perception,5,1,0.2,0.206,0.97
+2,parent,assortment_doubt,5,1,0.2,0.056,3.56
+1,parent,past_bad_experience,5,3,0.6,0.421,1.43
+0,late_night,price_perception,5,1,0.2,0.215,0.93

@@ -41,7 +41,10 @@ def load_relevant() -> pd.DataFrame:
 
     for col in ["categories_mentioned", "barrier_type", "segment_signals"]:
         df[col] = df[col].apply(lambda x: json.loads(x) if x else [])
-    df["month"] = pd.to_datetime(df["date"]).dt.to_period("M").astype(str)
+    # App Store dates carry a timezone offset (e.g. "-07:00"), Play Store dates
+    # don't - truncate to the naive YYYY-MM-DDTHH:MM:SS prefix so pandas can
+    # parse both with one format. Month-level bucketing doesn't need the offset.
+    df["month"] = pd.to_datetime(df["date"].str[:19]).dt.to_period("M").astype(str)
     return df
 
 
